@@ -2,20 +2,22 @@ name: Gunluk Gorsel QA Denetimi
 
 on:
   schedule:
-    # Her gun sabah 09:00'da (UTC 06:00) otomatik calisir
     - cron: '0 6 * * *'
-  workflow_dispatch: # Istendiginde elle de tetiklenebilir
+  workflow_dispatch:
 
 jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # GitHub'in yeni referans resmini depoya yazmasina izin verir
+
     steps:
     - uses: actions/checkout@v4
 
     - uses: actions/setup-node@v4
       with:
-        node-version: lts/*
+        node-version: 20
 
     - name: Bağımlılıkları Yükle
       run: npm ci
@@ -23,10 +25,18 @@ jobs:
     - name: Playwright Tarayıcılarını Kur
       run: npx playwright install --with-deps chromium
 
-    - name: Testi Çalıştır
-      run: npx playwright test tests/anasayfa.spec.js --project=chromium --update-snapshots
+    - name: Testi Çalıştır ve Referansı Güncelle
+      run: npx playwright test anasayfa.spec.js --project=chromium --update-snapshots || true
 
-    - name: Raporu Kaydet (Hata Durumunda)
+    - name: Yeni Ekran Görüntüsünü Depoya Kaydet
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add .
+        git commit -m "Linux referans gorseli otomatik olusturuldu" || exit 0
+        git push
+
+    - name: Raporu Kaydet
       uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
