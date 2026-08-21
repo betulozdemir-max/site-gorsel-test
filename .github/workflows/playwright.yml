@@ -21,10 +21,10 @@ jobs:
       run: npm ci
 
     - name: Playwright Tarayıcılarını Kur
-      run: - name: Testi Çalıştır
-      run: npx playwright test tests/anasayfa.spec.js --project=chromium --update-snapshots
+      run: npx playwright install --with-deps chromium
+
     - name: Testi Çalıştır
-      run: npx playwright test tests/anasayfa.spec.js --project=chromium
+      run: npx playwright test tests/anasayfa.spec.js --project=chromium --update-snapshots
 
     - name: Raporu Kaydet (Hata Durumunda)
       uses: actions/upload-artifact@v4
